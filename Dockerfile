@@ -12,11 +12,13 @@ RUN corepack enable && corepack prepare pnpm@10.13.1 --activate
 WORKDIR /app
 
 # Copy package files first for better layer caching
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
-COPY packages/core/package.json ./packages/core/
-COPY packages/shell/package.json ./packages/shell/
-COPY packages/chat/package.json ./packages/chat/
-COPY apps/zoe/package.json ./apps/zoe/
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.json ./
+
+# Copy all package.json files
+COPY packages/core/package.json packages/core/tsconfig.json ./packages/core/
+COPY packages/shell/package.json packages/shell/tsconfig.json ./packages/shell/
+COPY packages/chat/package.json packages/chat/tsconfig.json ./packages/chat/
+COPY apps/zoe/package.json apps/zoe/tsconfig.json ./apps/zoe/
 
 # Install dependencies
 RUN pnpm install --frozen-lockfile
@@ -26,6 +28,8 @@ COPY packages/ ./packages/
 COPY apps/zoe/ ./apps/zoe/
 
 # Build all packages (turborepo handles dependency order)
+# Increase Node memory for TypeScript declaration generation
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN pnpm build
 
 # ============================================================================
@@ -37,7 +41,7 @@ FROM nginx:alpine AS runtime
 COPY --from=builder /app/apps/zoe/dist /usr/share/nginx/html
 
 # Custom nginx config for SPA routing
-COPY <<EOF /etc/nginx/conf.d/default.conf
+RUN cat > /etc/nginx/conf.d/default.conf << 'EOF'
 server {
     listen 80;
     server_name _;
@@ -46,7 +50,7 @@ server {
 
     # SPA fallback - serve index.html for all routes
     location / {
-        try_files \$uri \$uri/ /index.html;
+        try_files $uri $uri/ /index.html;
     }
 
     # Cache static assets
