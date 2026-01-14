@@ -417,14 +417,7 @@ docker run -p 3000:3000 \
 - Sidebar navigation
 - Tab management
 - Rich components
-- Orb visualization
 - Audio reactivity
-
-### Zoe Full (Production)
-
-Complete integration with the Wonderland ecosystem.
-
-See [Deployment Guide](docs/guides/deployment.md) for production configuration.
 
 ---
 

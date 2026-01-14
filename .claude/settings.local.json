@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm init:*)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm approve-builds:*)",
+      "Bash(pnpm build:*)",
+      "Bash(eza:*)",
+      "Bash(git init:*)",
+      "Bash(git remote add:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial commit: Looking Glass v0.1.0 foundation\n\nPhase 0 implementation of the Looking Glass programmable chat UI:\n\n- Monorepo setup with Turborepo + pnpm\n- @looking-glass/core: MCP server, Zustand state, event bus, transports\n- @looking-glass/shell: Header, Footer, Sidebar, TabBar components\n- @looking-glass/chat: Message rendering, input, streaming support\n- Alice Demo app with terminal aesthetic theme\n- Terminal theme: green-on-black, JetBrains Mono, box-drawing chars\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\ndocs: add comprehensive project documentation\n\n- Expand README with full project overview, architecture diagram,\n  core concepts, usage examples, and deployment modes\n- Add architecture documentation explaining three-layer design\n  \\(MCP, State, Render layers\\) and data flow\n- Create developer guide with setup, patterns, and best practices\n- Add API reference for core, shell, and chat packages\n- Add contributing guidelines with code style and PR process\n- Add MCP Controllable UI specification\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+    ]
+  }
+}

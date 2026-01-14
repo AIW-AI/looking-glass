@@ -348,22 +348,85 @@ import { useLookingGlassStore } from '../state/index.js';
 export function registerCoreTools(server: MCPServer): void {
   const store = useLookingGlassStore.getState();
 
+  // ui.registerTheme
+  server.registerTool(
+    defineTool()
+      .name('ui.registerTheme')
+      .description('Register a new theme definition')
+      .input({
+        type: 'object',
+        properties: {
+          id: { type: 'string', description: 'Unique theme identifier' },
+          name: { type: 'string', description: 'Human-readable theme name' },
+          description: { type: 'string', description: 'Theme description' },
+          variables: {
+            type: 'object',
+            description: 'CSS custom properties map (e.g., {"--color-bg": "#000000"})',
+          },
+          meta: {
+            type: 'object',
+            description: 'Optional metadata',
+            properties: {
+              author: { type: 'string' },
+              version: { type: 'string' },
+              category: { type: 'string', enum: ['dark', 'light', 'high-contrast'] },
+            },
+          },
+        },
+        required: ['id', 'name', 'variables'],
+      })
+      .handler(async (params: unknown) => {
+        const theme = params as { id: string; name: string; description?: string; variables: Record<string, string>; meta?: { author?: string; version?: string; category?: 'dark' | 'light' | 'high-contrast' } };
+        useLookingGlassStore.getState().registerTheme(theme);
+        return { success: true, data: { id: theme.id, name: theme.name } };
+      })
+      .build()
+  );
+
+  // ui.listThemes
+  server.registerTool(
+    defineTool()
+      .name('ui.listThemes')
+      .description('List all registered themes')
+      .input({ type: 'object', properties: {} })
+      .handler(async () => {
+        const themes = useLookingGlassStore.getState().listThemes();
+        return {
+          success: true,
+          data: {
+            themes: themes.map((t) => ({
+              id: t.id,
+              name: t.name,
+              description: t.description,
+              category: t.meta?.category,
+            })),
+            activeTheme: useLookingGlassStore.getState().ui.theme,
+          },
+        };
+      })
+      .build()
+  );
+
   // ui.setTheme
   server.registerTool(
     defineTool()
       .name('ui.setTheme')
-      .description('Set the UI theme')
+      .description('Activate a registered theme by ID')
       .input({
         type: 'object',
         properties: {
-          theme: { type: 'string', description: 'Theme name (e.g., terminal, terminal-amber, light)' },
+          theme: { type: 'string', description: 'Theme ID to activate' },
         },
         required: ['theme'],
       })
       .handler(async (params: unknown) => {
         const { theme } = params as { theme: string };
-        store.setTheme(theme);
-        return { success: true, data: { theme } };
+        const themeObj = useLookingGlassStore.getState().getTheme(theme);
+        if (!themeObj) {
+          return { success: false, error: `Theme not found: ${theme}. Use ui.listThemes to see available themes.` };
+        }
+        useLookingGlassStore.getState().setTheme(theme);
+        return { success: true, data: { theme, name: themeObj.name } };
       })
       .build()
   );

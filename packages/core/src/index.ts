@@ -25,6 +25,9 @@ export * from './mcp/index.js';
 // Re-export transports
 export * from './transports/index.js';
 
+// Re-export themes
+export * from './themes/index.js';
+
 // ============================================================================
 // Main Entry Point
 // ============================================================================
@@ -34,6 +37,7 @@ import { MCPServer, getMCPServer, registerCoreTools } from './mcp/index.js';
 import { useLookingGlassStore } from './state/index.js';
 import { getEventBus } from './events/index.js';
 import { createTransport } from './transports/index.js';
+import { registerBuiltInThemes } from './themes/index.js';
 
 export interface LookingGlassInstance {
   // Core
@@ -63,6 +67,9 @@ export function createLookingGlass(config: CoreConfig): LookingGlassInstance {
 
   // Register core tools
   registerCoreTools(server);
+
+  // Register built-in themes
+  registerBuiltInThemes(store.getState().registerTheme);
 
   // Apply default theme if provided
   if (config.theme) {

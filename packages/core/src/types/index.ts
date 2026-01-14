@@ -197,6 +197,22 @@ export interface ToolCallInfo {
 }
 
 // ============================================================================
+// Theme Types
+// ============================================================================
+
+export interface ThemeDefinition {
+  id: string;
+  name: string;
+  description?: string;
+  variables: Record<string, string>;
+  meta?: {
+    author?: string;
+    version?: string;
+    category?: 'dark' | 'light' | 'high-contrast';
+  };
+}
+
+// ============================================================================
 // Token Types
 // ============================================================================
 
@@ -229,6 +245,9 @@ export interface TransportConfig {
 // ============================================================================
 
 export interface LookingGlassState {
+  // Identity
+  assistantName: string;
+
   // UI Sets
   uiSets: {
     registered: Map<string, UISetDefinition>;
@@ -262,6 +281,9 @@ export interface LookingGlassState {
     modals: Modal[];
     progress: ProgressTask[];
   };
+
+  // Themes
+  themes: Map<string, ThemeDefinition>;
 
   // Components
   components: Map<string, ComponentInstance>;

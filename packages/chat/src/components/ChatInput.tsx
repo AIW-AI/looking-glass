@@ -17,7 +17,6 @@ export function ChatInput({
   const [value, setValue] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isStreaming = useLookingGlassStore((state) => state.chat.isStreaming);
-  const addMessage = useLookingGlassStore((state) => state.addMessage);
 
   const isDisabled = disabled || isStreaming;
 
@@ -32,13 +31,7 @@ export function ChatInput({
     const trimmed = value.trim();
     if (!trimmed || isDisabled) return;
 
-    // Add user message to store
-    addMessage({
-      role: 'user',
-      content: trimmed,
-    });
-
-    // Callback for parent to handle actual sending
+    // Callback for parent to handle actual sending (hook also adds message to store)
     onSend?.(trimmed);
 
     // Clear input

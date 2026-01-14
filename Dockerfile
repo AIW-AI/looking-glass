@@ -18,14 +18,14 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.json ./
 COPY packages/core/package.json packages/core/tsconfig.json ./packages/core/
 COPY packages/shell/package.json packages/shell/tsconfig.json ./packages/shell/
 COPY packages/chat/package.json packages/chat/tsconfig.json ./packages/chat/
-COPY apps/zoe/package.json apps/zoe/tsconfig.json ./apps/zoe/
+COPY apps/demo/package.json apps/demo/tsconfig.json ./apps/demo/
 
 # Install dependencies
 RUN pnpm install --frozen-lockfile
 
 # Copy source code
 COPY packages/ ./packages/
-COPY apps/zoe/ ./apps/zoe/
+COPY apps/demo/ ./apps/demo/
 
 # Build all packages (turborepo handles dependency order)
 # Increase Node memory for TypeScript declaration generation
@@ -38,7 +38,7 @@ RUN pnpm build
 FROM nginx:alpine AS runtime
 
 # Copy built assets from builder
-COPY --from=builder /app/apps/zoe/dist /usr/share/nginx/html
+COPY --from=builder /app/apps/demo/dist /usr/share/nginx/html
 
 # Custom nginx config for SPA routing
 RUN cat > /etc/nginx/conf.d/default.conf << 'EOF'

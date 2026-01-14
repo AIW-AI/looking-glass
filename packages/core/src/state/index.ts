@@ -20,6 +20,7 @@ import type {
   VisualizationType,
   VisualizationInstance,
   Message,
+  ThemeDefinition,
 } from '../types/index.js';
 import { getEventBus, Events } from '../events/index.js';
 
@@ -28,6 +29,7 @@ import { getEventBus, Events } from '../events/index.js';
 // ============================================================================
 
 const initialState: LookingGlassState = {
+  assistantName: 'Assistant',
   uiSets: {
     registered: new Map(),
     activeId: null,
@@ -48,7 +50,7 @@ const initialState: LookingGlassState = {
   },
   ui: {
     theme: 'terminal',
-    accentColor: '#00ff00',
+    accentColor: '#14b8a6',
     layout: 'chat',
     panels: [],
     focus: null,
@@ -56,6 +58,7 @@ const initialState: LookingGlassState = {
     modals: [],
     progress: [],
   },
+  themes: new Map(),
   components: new Map(),
   visualizations: {
     types: new Map(),
@@ -79,6 +82,9 @@ const initialState: LookingGlassState = {
 // ============================================================================
 
 export interface LookingGlassActions {
+  // Identity Actions
+  setAssistantName: (name: string) => void;
+
   // UI Set Actions
   registerUISet: (uiSet: UISetDefinition) => void;
   unregisterUISet: (id: string) => void;
@@ -99,8 +105,15 @@ export interface LookingGlassActions {
   closeTab: (id: string) => void;
   activateTab: (id: string) => void;
 
+  // Theme Actions
+  registerTheme: (theme: ThemeDefinition) => void;
+  unregisterTheme: (id: string) => void;
+  listThemes: () => ThemeDefinition[];
+  getTheme: (id: string) => ThemeDefinition | undefined;
+  setTheme: (themeId: string) => void;
+  applyTheme: (theme: ThemeDefinition) => void;
+
   // UI Actions
-  setTheme: (theme: string) => void;
   setAccentColor: (color: string) => void;
   setLayout: (mode: LayoutMode) => void;
   setPanels: (panels: Panel[]) => void;
@@ -150,6 +163,11 @@ const generateId = (prefix: string) => `${prefix}_${++idCounter}`;
 export const useLookingGlassStore = create<LookingGlassState & LookingGlassActions>()(
   subscribeWithSelector((set, get) => ({
     ...initialState,
+
+    // Identity Actions
+    setAssistantName: (name) => {
+      set({ assistantName: name });
+    },
 
     // UI Set Actions
     registerUISet: (uiSet) => {
@@ -297,12 +315,55 @@ export const useLookingGlassStore = create<LookingGlassState & LookingGlassActio
       getEventBus().emit(Events.SHELL_TAB_ACTIVATED, { id });
     },
 
-    // UI Actions
-    setTheme: (theme) => {
-      set((state) => ({ ui: { ...state.ui, theme } }));
-      getEventBus().emit(Events.UI_THEME_CHANGED, { theme });
+    // Theme Actions
+    registerTheme: (theme) => {
+      set((state) => {
+        const themes = new Map(state.themes);
+        themes.set(theme.id, theme);
+        return { themes };
+      });
+      getEventBus().emit(Events.UI_THEME_CHANGED, { action: 'registered', theme });
     },
 
+    unregisterTheme: (id) => {
+      set((state) => {
+        const themes = new Map(state.themes);
+        themes.delete(id);
+        return { themes };
+      });
+    },
+
+    listThemes: () => {
+      return Array.from(get().themes.values());
+    },
+
+    getTheme: (id) => {
+      return get().themes.get(id);
+    },
+
+    setTheme: (themeId) => {
+      const theme = get().themes.get(themeId);
+      if (!theme) {
+        console.warn(`[State] Theme not found: ${themeId}`);
+        return;
+      }
+      get().applyTheme(theme);
+      set((state) => ({ ui: { ...state.ui, theme: themeId } }));
+      getEventBus().emit(Events.UI_THEME_CHANGED, { action: 'activated', themeId });
+    },
+
+    applyTheme: (theme) => {
+      // Apply CSS variables to document root
+      if (typeof document !== 'undefined') {
+        const root = document.documentElement;
+        root.setAttribute('data-theme', theme.id);
+        for (const [key, value] of Object.entries(theme.variables)) {
+          root.style.setProperty(key, value);
+        }
+      }
+    },
+
+    // UI Actions
     setAccentColor: (color) => {
       set((state) => ({ ui: { ...state.ui, accentColor: color } }));
     },
@@ -541,6 +602,8 @@ export const useLookingGlassStore = create<LookingGlassState & LookingGlassActio
 // Selectors
 // ============================================================================
 
+export const selectAssistantName = (state: LookingGlassState) => state.assistantName;
+
 export const selectUISet = (state: LookingGlassState) => ({
   active: state.uiSets.activeId,
   registered: state.uiSets.registered,
@@ -548,6 +611,7 @@ export const selectUISet = (state: LookingGlassState) => ({
 
 export const selectShell = (state: LookingGlassState) => state.shell;
 export const selectUI = (state: LookingGlassState) => state.ui;
+export const selectThemes = (state: LookingGlassState) => state.themes;
 export const selectChat = (state: LookingGlassState) => state.chat;
 export const selectTokens = (state: LookingGlassState) => state.tokens;
 export const selectComponents = (state: LookingGlassState) => state.components;

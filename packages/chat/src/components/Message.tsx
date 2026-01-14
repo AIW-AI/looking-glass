@@ -1,5 +1,6 @@
 import { Fragment, type ReactNode } from 'react';
 import type { Message as MessageType } from '@looking-glass/core';
+import { useLookingGlassStore } from '@looking-glass/core';
 
 export interface MessageProps {
   message: MessageType;
@@ -7,7 +8,8 @@ export interface MessageProps {
 }
 
 export function Message({ message, className = '' }: MessageProps) {
-  const roleLabel = getRoleLabel(message.role);
+  const assistantName = useLookingGlassStore((state) => state.assistantName);
+  const roleLabel = getRoleLabel(message.role, assistantName);
   const timestamp = formatTimestamp(message.timestamp);
 
   return (
@@ -102,12 +104,12 @@ function LineContent({ line }: { line: string }) {
   return <>{parts}</>;
 }
 
-function getRoleLabel(role: 'user' | 'assistant' | 'system'): string {
+function getRoleLabel(role: 'user' | 'assistant' | 'system', assistantName: string): string {
   switch (role) {
     case 'user':
       return 'USER';
     case 'assistant':
-      return 'ALICE';
+      return assistantName.toUpperCase();
     case 'system':
       return 'SYSTEM';
   }
